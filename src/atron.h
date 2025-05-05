@@ -16,7 +16,7 @@
 typedef struct note_t note_t;
 struct note_t {
     int type; // 0 = normal note | 1 = no note | 2 = stop note
-    float value; // stored as frequency
+    float frequency; // stored as frequency
     int instrument;
 };
 
@@ -59,6 +59,7 @@ struct noise_channel_t {
     int current;
     int value;
     int old_note;
+    int active;
 };
 
 pthread_mutex_t* audio_mutex_ptr;

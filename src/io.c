@@ -108,7 +108,7 @@ void read_pattern(int index) {
             continue;
         }
         note->type = 0;
-        note->value = value_from_note(note_val, mod, octave - '0'); // stored as frequency
+        note->frequency = value_from_note(note_val, mod, octave - '0'); // stored as frequency
         note->instrument = instrument;
     }
 }

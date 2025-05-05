@@ -34,10 +34,42 @@ void update_triangle(triangle_channel_t* channel, unsigned int frames) {
 }
 
 void update_noise(noise_channel_t* channel, unsigned int frames) {
+    int slowed = frame_counter / 10;
+    int current_note = (slowed) % 16;
+    if (current_note != channel->old_note) { // load in new note
+        channel->old_note = current_note;
+        printf("%d ########################################################\n", current_note);
+        int a = slowed / 16;
+        int map_index = a * 4 + 3;
+        printf("map index: %d\n", map_index);
+        int index = map[a * 4 + 3];
+        printf("index: %d\n", index);
+        pattern_t* pattern = patterns[map[a * 4 + 3]];
+        note_t* note = &pattern->notes[current_note];
+        printf("note_type: %d\n", note->type);
+        if (note->type == 1) {
+            printf("keep on holding ************************\n");
+        } else if (note->type == 2) {
+            channel->active = 0;
+            printf("stop holding --------------------------------\n");
+            memset(noise_channel->data, 0, FRAME_COUNT * sizeof(short) * SAMPLE_RATE);
+        } else {
+            channel->active = 1;
+            printf("note change! {}{}{}{}{}{}{}{}{}{}{}{}{}{}{}\n");
+            channel->period = (float) 10000 / note->frequency;
+            printf("new note: (%f, %d)\n", note->frequency, note->instrument);
+            printf("new period is: %d\n", channel->period);
+        }
+    }
+
+
     for (unsigned int i = 0; i < frames; i++) {
         if (channel->current == 0) {
             channel->current = channel->period;
             channel->value = GetRandomValue(-MAX_AMP, MAX_AMP);
+        }
+        if (!channel->active) {
+            channel->value = 0;
         }
         for (; channel->current > 0 && i < frames; channel->current--, i++) {
             channel->data[i] = channel->value;
@@ -93,6 +125,7 @@ void init_audio(void) {
     pulse_channel1->period = 100;
     pulse_channel1->current = 0;
     pulse_channel1->value = 0;
+    pulse_channel1->old_note = -1;
 
     pulse_channel2 = malloc(sizeof(pulse_channel_t));
 
@@ -102,6 +135,7 @@ void init_audio(void) {
     pulse_channel2->period = 50;
     pulse_channel2->current = 0;
     pulse_channel2->value = 0;
+    pulse_channel2->old_note = -1;
 
     triangle_channel = malloc(sizeof(triangle_channel_t));
 
@@ -110,6 +144,7 @@ void init_audio(void) {
     triangle_channel->slope = 200;
     triangle_channel->value = 0;
     triangle_channel->direction = 1;
+    triangle_channel->old_note = -1;
 
     noise_channel = malloc(sizeof(noise_channel_t));
 
@@ -118,5 +153,7 @@ void init_audio(void) {
     noise_channel->period = 1;
     noise_channel->current = 0;
     noise_channel->value = 0;
+    noise_channel->old_note = -1;
+    noise_channel->active = 0;
 }
 

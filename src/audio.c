@@ -34,31 +34,19 @@ void update_triangle(triangle_channel_t* channel, unsigned int frames) {
 }
 
 void update_noise(noise_channel_t* channel, unsigned int frames) {
-    int slowed = frame_counter / 10;
+    int slowed = frame_counter / 7;
     int current_note = (slowed) % 16;
     if (current_note != channel->old_note) { // load in new note
         channel->old_note = current_note;
-        printf("%d ########################################################\n", current_note);
         int a = slowed / 16;
-        int map_index = a * 4 + 3;
-        printf("map index: %d\n", map_index);
-        int index = map[a * 4 + 3];
-        printf("index: %d\n", index);
         pattern_t* pattern = patterns[map[a * 4 + 3]];
         note_t* note = &pattern->notes[current_note];
-        printf("note_type: %d\n", note->type);
-        if (note->type == 1) {
-            printf("keep on holding ************************\n");
-        } else if (note->type == 2) {
+        if (note->type == 2) {
             channel->active = 0;
-            printf("stop holding --------------------------------\n");
             memset(noise_channel->data, 0, FRAME_COUNT * sizeof(short) * SAMPLE_RATE);
-        } else {
+        } else if (note->type == 0) {
             channel->active = 1;
-            printf("note change! {}{}{}{}{}{}{}{}{}{}{}{}{}{}{}\n");
-            channel->period = (float) 10000 / note->frequency;
-            printf("new note: (%f, %d)\n", note->frequency, note->instrument);
-            printf("new period is: %d\n", channel->period);
+            channel->period = (float) 8000 / (note->frequency);
         }
     }
 
